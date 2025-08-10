@@ -1,12 +1,23 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, Res } from '@nestjs/common';
+import express from 'express';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  @Get('health')
+  health() {
+    return { ok: true, ts: new Date().toISOString() };
+  }
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('test-cookie')
+  testCookie(@Res({ passthrough: true }) res: express.Response) {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('demo_cookie', 'ok', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      path: '/', // ajusta si solo quieres que viva en /auth/refresh
+      maxAge: 60 * 60 * 1000,
+    });
+    return { message: 'cookie seteada' };
   }
 }
